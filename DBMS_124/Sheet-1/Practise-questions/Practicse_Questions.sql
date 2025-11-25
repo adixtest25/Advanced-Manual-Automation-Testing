@@ -379,33 +379,132 @@ WHERE NUMBER REGEXP '[0-9]';
 
 -- HARD (15) 
 -- Find all customers whose phone numbers contain at least one “9”.
+USE SQL_STORE;
+SELECT * 
+FROM CUSTOMERS 
+WHERE PHONE REGEXP "9";
 
 -- List products whose names begin with any letter from A to F.
+USE SQL_STORE;
+SELECT * 
+FROM PRODUCTS 
+WHERE NAME REGEXP "^[A-F]";
 
 -- For each client, calculate their average invoice amount and return only the ones with an average above 150.
+USE SQL_INVOICING;
+SELECT 
+	CLIENT_ID,
+    AVG(INVOICE_TOTAL) AS "AVG_INVOICE_TOTAL"
+FROM INVOICES
+GROUP BY CLIENT_ID
+HAVING AVG_INVOICE_TOTAL > 150;
+
 
 -- Show customers whose first names contain only letters and no digits at all.
+USE SQL_STORE;
+SELECT * 
+FROM CUSTOMERS 
+WHERE FIRST_NAME REGEXP "[A-Za-z]+" AND 
+      FIRST_NAME REGEXP "[^0-9]";
+
+
 
 -- Display employees whose salary ends with two zeros.
 
+USE SQL_HR;
+SELECT * 
+FROM EMPLOYEES
+WHERE SALARY REGEXP "[0]{2}$";
+
+
 -- List product names consisting of three or more separate words.
+USE SQL_STORE;
+SELECT * 
+FROM PRODUCTS 
+WHERE NAME REGEXP "^[A-Za-z]+( [A-Za-z]+)*$";
+-- WHERE NAME REGEXP "^[A-Za-z]+.*( [A-Za-z]+)*$";
 
 -- Show orders that have been shipped and sort them from most recent to oldest.
 
+USE SQL_STORE;
+SELECT * 
+FROM ORDERS 
+WHERE  NOT SHIPPED_DATE IS NULL
+ORDER BY SHIPPED_DATE DESC;
+
 -- Display payments greater than 50 made using the payment method labeled as “1”.
+SELECT * FROM sql_invoicing.payments;
+USE SQL_INVOICING;
+SELECT * 
+FROM PAYMENTS 
+WHERE AMOUNT > 50 AND PAYMENT_METHOD = 1;
+
 
 -- List orders whose combined billing total is between 20 and 150.
+SELECT * FROM sql_store.order_ITEMS;
+
+USE SQL_STORE;
+SELECT 
+	ORDER_ID,
+    SUM(QUANTITY*UNIT_PRICE) AS "T_B_A"
+FROM ORDER_ITEMS
+GROUP BY ORDER_ID
+HAVING T_B_A BETWEEN 20 AND 150;
+
+
 
 -- Show corporate employees who joined after January 1, 2023.
+SELECT * FROM sql_inventory.corporates;
+
+USE SQL_INVENTORY;
+SELECT * 
+FROM CORPORATES
+WHERE DATE_OF_JOINING > "2023-01-01";
+
 
 -- From customers, show only those whose last names are purely alphabetical and have at least 1000 points.
 
+USE SQL_STORE;
+SELECT * 
+FROM CUSTOMERS
+WHERE LAST_NAME REGEXP "[^0-9]" AND 
+      POINTS >=1000;
+
 -- Display customers whose first names are between 4 and 7 characters long.
+USE SQL_STORE;
+SELECT * 
+FROM CUSTOMERS
+-- WHERE FIRST_NAME REGEXP "[A-Za-z]{4}" OR 
+-- 	  FIRST_NAME REGEXP "[A-Za-z]{5}" OR 
+--       FIRST_NAME REGEXP "[A-Za-z]{6}" OR 
+--       FIRST_NAME REGEXP "[A-Za-z]{7}";
+WHERE FIRST_NAME REGEXP "[A-Za-z]{4,7}";
+-- OR WHERE FIRST_NAME REGEXP "^.*{4,7}$"
 
 -- Show invoice numbers that include at least one alphabetical letter.
 
+
 -- List all order item notes that begin with the word “first” or “second”.
+SELECT * FROM sql_store.order_item_notes;
+
+USE SQL_STORE;
+SELECT * 
+FROM ORDER_ITEM_NOTES
+-- WHERE NOTE REGEXP "^FIRST" OR
+--       NOTE REGEXP "^SECOND"; 
+      
+WHERE NOTE REGEXP '^(first|second)';
 
 -- For HR data, show office IDs along with how many employees work there, but only return offices that have more than two employees. 
+USE SQL_HR;
+SELECT 
+	OFFICE_ID,
+    COUNT(OFFICE_ID)
+FROM EMPLOYEES_NEW
+GROUP BY OFFICE_ID
+HAVING COUNT(OFFICE_ID) > 2;
+
+
+
 
 

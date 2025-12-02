@@ -1,0 +1,284 @@
+-- List all employees with their office names.
+USE SQL_HR;
+SELECT 
+	EMP.FIRST_NAME,
+    EMP.JOB_TITLE,
+    OFFI.OFFICE_ID,
+    OFFI.ADDRESS
+FROM EMPLOYEES EMP
+INNER JOIN OFFICES OFFI
+ON EMP.OFFICE_ID = OFFI.OFFICE_ID;
+
+-- Show all offices with the employees working there.
+USE SQL_HR;
+SELECT * 
+FROM OFFICES OFFI 
+JOIN EMPLOYEES EMP
+ON OFFI.OFFICE_ID = EMP.OFFICE_ID;
+
+-- Show all offices even if NO employees are assigned.
+USE SQL_HR;
+SELECT 
+    OFFI.OFFICE_ID,
+	OFFI.ADDRESS,
+    EMP.EMPLOYEE_ID,
+    EMP.FIRST_NAME
+FROM OFFICES  OFFI
+LEFT JOIN EMPLOYEES  EMP 
+ON OFFI.OFFICE_ID = EMP.OFFICE_ID;
+
+-- Show all employees even if they have NO office assigned.
+USE SQL_HR;
+SELECT * 
+FROM EMPLOYEES EMP 
+LEFT JOIN OFFICES OFFI 
+ON EMP.OFFICE_ID = OFFI.OFFICE_ID;
+
+-- Show employees with their managers (self join).
+USE SQL_HR;
+SELECT 
+	E1.FIRST_NAME,
+    E1.JOB_TITLE,
+    E2.FIRST_NAME,
+    E2.JOB_TITLE
+FROM EMPLOYEES E1
+JOIN EMPLOYEES E2
+ON E1.REPORTS_TO = E2.EMPLOYEE_ID;
+
+-- Show employees who do NOT have managers.
+USE SQL_HR;
+SELECT 
+	E1.FIRST_NAME,
+	E2.FIRST_NAME
+FROM EMPLOYEES E1
+LEFT JOIN EMPLOYEES E2 
+ON E1.REPORTS_TO = E2.EMPLOYEE_ID
+WHERE E2.FIRST_NAME IS NULL;
+
+-- List employees and their manager’s salary. 
+USE SQL_HR;
+SELECT 
+	E1.FIRST_NAME AS EMPLOYEES,
+    E1.SALARY AS EMP_SALARY,
+    E2.FIRST_NAME AS MANAGERS ,
+    E2.SALARY AS MANA_SALARY
+FROM EMPLOYEES E1
+JOIN EMPLOYEES E2 
+ON E1.REPORTS_TO = E2.EMPLOYEE_ID;
+
+-- List customers with their orders.
+USE SQL_STORE;
+SELECT
+    CUS.CUSTOMER_ID, 
+	CUS.FIRST_NAME,
+    ORD.ORDER_ID,
+    ORD.ORDER_DATE
+FROM CUSTOMERS CUS
+JOIN ORDERS ORD 
+ON CUS.CUSTOMER_ID = ORD.CUSTOMER_ID;
+
+-- List customers with NO orders.
+USE SQL_STORE;
+SELECT 
+	CUS.FIRST_NAME,
+    ORD.ORDER_ID,
+    ORD.CUSTOMER_ID
+FROM CUSTOMERS CUS
+LEFT JOIN ORDERS ORD 
+ON CUS.CUSTOMER_ID = ORD.CUSTOMER_ID
+WHERE ORD.ORDER_ID IS NULL;
+
+-- List orders with their shipper name.
+USE SQL_STORE;
+SELECT 
+	ORD.ORDER_ID,
+    ORD.ORDER_DATE,
+    SHP.SHIPPER_ID,
+    SHP.NAME
+FROM ORDERS ORD 
+JOIN SHIPPERS SHP 
+ON ORD.SHIPPER_ID = SHP.SHIPPER_ID;
+
+-- List shippers who did NOT ship any order.
+USE SQL_STORE;
+SELECT 
+	SHP.SHIPPER_ID,
+    SHP.NAME
+FROM SHIPPERS SHP
+LEFT JOIN ORDERS ORD
+ON SHP.SHIPPER_ID = ORD.SHIPPER_ID
+WHERE ORD.SHIPPER_ID IS NULL;
+
+-- List products with their order item quantities.
+USE SQL_STORE;
+SELECT 
+	PRO.NAME,
+    PRO.QUANTITY_IN_STOCK,
+    ORD.PRODUCT_ID,
+    ORD.QUANTITY
+FROM PRODUCTS PRO
+JOIN ORDER_ITEMS ORD
+ON PRO.PRODUCT_ID = ORD.PRODUCT_ID;
+
+-- List products which were NEVER ordered.
+USE SQL_STORE;
+SELECT 
+	PRO.PRODUCT_ID,
+    PRO.NAME
+FROM PRODUCTS PRO
+LEFT JOIN ORDER_ITEMS ORI
+ON PRO.PRODUCT_ID = ORI.PRODUCT_ID
+WHERE ORI.PRODUCT_ID IS NULL;
+
+-- List orders even if they have no order_items.
+USE SQL_STORE;
+SELECT * 
+FROM ORDERS ORD 
+LEFT JOIN ORDER_ITEMS ORI 
+ON ORD.ORDER_ID = ORI.ORDER_ID;
+
+-- List employees with both office and manager info.
+USE SQL_HR;
+SELECT 
+	EMP1.FIRST_NAME AS EMPLOYEES,
+    EMP2.FIRST_NAME AS MANAGER,
+    EMP2.JOB_TITLE AS MANAGER_POSITION,
+    EMP2.SALARY AS MANAGER_SALARY,
+    OFFI.ADDRESS AS OFFICE
+FROM EMPLOYEES EMP1 
+LEFT JOIN EMPLOYEES EMP2 
+ON EMP1.REPORTS_TO = EMP2.EMPLOYEE_ID
+LEFT JOIN OFFICES OFFI 
+ON EMP1.OFFICE_ID = OFFI.OFFICE_ID;
+
+-- Show employees whose office and manager are in different cities.
+USE SQL_HR;
+SELECT 
+	EMP1.FIRST_NAME,
+    OFFI.CITY,
+    EMP2.FIRST_NAME    
+FROM EMPLOYEES EMP1
+LEFT JOIN EMPLOYEES EMP2 
+ON EMP1.REPORTS_TO = EMP2.EMPLOYEE_ID
+LEFT JOIN OFFICES OFFI 
+ON EMP1.OFFICE_ID = OFFI.OFFICE_ID;
+
+USE SQL_HR;
+ SELECT e.employee_id, e.first_name AS employee,
+       o.city AS employee_city,
+       m.employee_id AS manager_id, m.first_name AS manager,
+       mo.city AS manager_city
+FROM employees e
+LEFT JOIN offices o ON e.office_id = o.office_id
+LEFT JOIN employees m ON e.reports_to = m.employee_id
+LEFT JOIN offices mo ON m.office_id = mo.office_id
+WHERE (o.city IS NOT NULL AND mo.city IS NOT NULL AND o.city <> mo.city);
+
+-- ---------------------------------------------------------------------------------------------
+
+
+-- Show offices where more than one employee works.
+USE SQL_HR;
+SELECT 
+	DISTINCT OFFI.ADDRESS AS OFFICES
+FROM EMPLOYEES EMP1 
+JOIN EMPLOYEES EMP2
+ON EMP1.REPORTS_TO = EMP2.EMPLOYEE_ID 
+JOIN OFFICES OFFI 
+ON EMP1.OFFICE_ID = OFFI.OFFICE_ID;
+
+SELECT o.office_id, o.address, COUNT(*) AS employee_count
+FROM employees e
+JOIN offices o ON e.office_id = o.office_id
+GROUP BY o.office_id, o.address
+HAVING COUNT(*) > 1;
+
+-- Show customers and their total order count (without GROUP BY).
+
+USE sql_store;
+SELECT 
+    c.customer_id,
+    c.first_name,
+    c.last_name,
+    COUNT(o.order_id) OVER (PARTITION BY c.customer_id) AS total_orders
+FROM customers c
+LEFT JOIN orders o
+    ON c.customer_id = o.customer_id;
+
+
+
+
+-- Show customers with first and last name + city they ordered from.
+USE SQL_STORE;
+SELECT 
+	CUST.FIRST_NAME,
+    CUST.LAST_NAME,
+    CUST.CITY,
+    ORD.ORDER_ID
+FROM CUSTOMERS CUST 
+JOIN ORDERS ORD 
+ON CUST.CUSTOMER_ID = ORD.CUSTOMER_ID;
+
+-- Show customers who ordered from shippers 3 or 4.
+USE SQL_STORE;
+SELECT 
+	CUST.CUSTOMER_ID,
+    CUST.FIRST_NAME,
+    CUST.LAST_NAME,
+    SHP.SHIPPER_ID
+FROM CUSTOMERS CUST 
+JOIN ORDERS ORD
+ON CUST.CUSTOMER_ID = ORD.CUSTOMER_ID
+JOIN SHIPPERS SHP
+ON ORD.SHIPPER_ID = SHP.SHIPPER_ID
+WHERE SHP.SHIPPER_ID IN (3,4);
+
+-- Show all customers even if they have no phone number.
+USE SQL_STORE;
+SELECT * 
+FROM CUSTOMERS;
+
+
+-- Show orders with NULL shipped_date.
+USE SQL_STORE;
+SELECT * 
+FROM ORDERS 
+WHERE SHIPPED_DATE IS NULL;
+
+-- Show orders with and without order notes
+USE SQL_STORE;
+SELECT 
+	ORD.ORDER_ID,
+    OIN.NOTE
+FROM ORDERS ORD 
+LEFT JOIN ORDER_ITEM_NOTES OIN 
+ON ORD.ORDER_ID = OIN.ORDER_ID;
+
+-- Show order items with product details.
+USE SQL_STORE;
+SELECT 
+	OI.ORDER_ID,
+    PRO.NAME,
+    PRO.QUANTITY_IN_STOCK,
+    PRO.UNIT_PRICE,
+    OI.QUANTITY AS ITEMS_ORDERED
+FROM ORDER_ITEMS OI
+JOIN PRODUCTS PRO 
+ON OI.PRODUCT_ID = PRO.PRODUCT_ID;
+
+-- List orders made by customers from “Chicago”.
+USE SQL_STORE;
+SELECT 
+	PRO.NAME,
+    OI.QUANTITY,
+    OI.UNIT_PRICE
+FROM CUSTOMERS CUS 
+JOIN ORDERS ORD 
+ON CUS.CUSTOMER_ID = ORD.CUSTOMER_ID 
+JOIN ORDER_ITEMS OI
+ON ORD.ORDER_ID = OI.ORDER_ID 
+JOIN PRODUCTS PRO 
+ON OI.PRODUCT_ID = PRO.PRODUCT_ID
+WHERE CUS.CITY= "CHICAGO"; 
+
+
